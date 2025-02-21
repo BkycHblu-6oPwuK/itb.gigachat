@@ -10,36 +10,56 @@ use Itb\Gigachat\Exceptions\ClientResultEmptyException;
 
 class Client extends HttpClient
 {
-    protected mixed $data = null;
+    protected ?array $getParams = null;
+    protected mixed $postData = null;
     protected $result;
 
     public function __construct(?array $options = null)
     {
         parent::__construct($options);
-        //$this->disableSslVerification();
     }
 
-    public function setData(mixed $data): static
+    /**
+     * добавить параметры к get запросу
+     */
+    public function setGetParams(array $data): static
     {
-        $this->data = $data;
+        $this->getParams = $data;
         return $this;
     }
 
     /**
-     * добавляет в массив data ключ и значение, если data был не массивом, то станет пустым массивом
+     * добавить параметр к параметрам get запроса
      */
-    public function addData(string $name, string $value): static
+    public function addGetParams(string $name, string $value): static
     {
-        if(!is_array($this->data)){
-            $this->data = [];
-        }
-        $this->data[$name] = $value;
+        $this->getParams[$name] = $value;
         return $this;
     }
 
-    public function getData(): mixed
+    /**
+     * получить параметры get запроса
+     */
+    public function getParams(): ?array
     {
-        return $this->data;
+        return $this->getParams;
+    }
+
+    /**
+     * данные для post запроса
+     */
+    public function setPostData(mixed $data): static
+    {
+        $this->postData = $data;
+        return $this;
+    }
+
+    /**
+     * данные post запроса
+     */
+    public function getPostData(): mixed
+    {
+        return $this->postData;
     }
 
     /**
@@ -59,6 +79,7 @@ class Client extends HttpClient
 
     /**
      * @param Uri|string $url
+     * @param $postData игнорируется если до этого данные были установлены в postData
      * @return mixed
      */
     public function post($url, $postData = null, $multipart = false)
@@ -66,7 +87,10 @@ class Client extends HttpClient
         if ($url instanceof Uri) {
             $url = $url->getLocator();
         }
-        return parent::post($url, $this->data ? $this->data : $postData, $multipart);
+        if($thisPostData = $this->getPostData()){
+            $postData = $thisPostData;
+        }
+        return parent::post($url, $postData, $multipart);
     }
 
     /**
@@ -76,8 +100,8 @@ class Client extends HttpClient
     public function get($url)
     {
         if ($url instanceof Uri) {
-            if (is_array($this->data)) {
-                $url->addParams($this->data);
+            if ($params = $this->getParams()) {
+                $url->addParams($params);
             }
             $url = $url->getLocator();
         }
