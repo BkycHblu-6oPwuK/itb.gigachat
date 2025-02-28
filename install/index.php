@@ -33,7 +33,8 @@ class itb_gigachat extends CModule
         if ($this->isVersionD7()) {
             ModuleManager::registerModule($this->MODULE_ID);
             Loader::includeModule($this->MODULE_ID);
-            Option::set($this->MODULE_ID, 'base_api_url', 'https://ngw.devices.sberbank.ru:9443');
+            Option::set($this->MODULE_ID, 'base_oauth_url', 'https://ngw.devices.sberbank.ru:9443');
+            Option::set($this->MODULE_ID, 'base_gigachat_url', 'https://gigachat.devices.sberbank.ru');
         } else {
             $APPLICATION->ThrowException('Нет поддержки d7 в главном модуле');
         }

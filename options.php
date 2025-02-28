@@ -5,8 +5,11 @@ use Bitrix\Main\Loader;
 use Bitrix\Main\Config\Option;
 use Itb\Core\Modules\Options\Fields\Checkbox;
 use Itb\Core\Modules\Options\Fields\Input;
+use Itb\Core\Modules\Options\Fields\Select;
 use Itb\Core\Modules\Options\Tab;
 use Itb\Core\Modules\Options\TabsBuilder;
+use Itb\Gigachat\Options;
+use Itb\Gigachat\Services\ModelsService;
 
 $request = HttpApplication::getInstance()->getContext()->getRequest();
 $module_id = htmlspecialcharsbx($request["mid"] != "" ? $request["mid"] : $request["id"]);
@@ -15,14 +18,31 @@ $POST_RIGHT = $APPLICATION->GetGroupRight($module_id);
 if ($POST_RIGHT < "S") {
     $APPLICATION->AuthForm('Недостаточные права доступа');
 }
-if(!Loader::includeModule('itb.core')) throw new \Exception("Должен быть установлен модуль itb.core");
 Loader::includeModule($module_id);
+
+$models = [
+    '' => 'Выберите модель' 
+];
+$defaultModel = '';
+try {
+    $modelsCollection = (new ModelsService())->getModels();
+    foreach($modelsCollection->models as $model){
+        $models[$model->id] = $model->id;
+    }
+    $defaultModel = $modelsCollection->first()->id;
+    if(!Options::getInstance()->defaultModel){
+        Option::set($module_id, 'gigachat_model', $defaultModel);
+    }
+    
+}catch (\Throwable $e){}
 
 $mainTab = new Tab('edit1', 'Общие настройки', 'Интеграция с API GigaChat');
 $mainTab->addField((new Input('authorization_key', 'Ключ авторизации'))->setLabel('Обязательные'));
 $mainTab->addField((new Input('scope', 'Scope')));
-$mainTab->addField((new Input('base_api_url', 'Базовый адрес запроса'))->setDefaultValue('https://ngw.devices.sberbank.ru:9443'));
-$mainTab->addField((new Checkbox('log_errors', 'логировать ошибки')));
+$mainTab->addField((new Input('base_oauth_url', 'Базовый адрес запроса для получения токена'))->setDefaultValue('https://ngw.devices.sberbank.ru:9443'));
+$mainTab->addField((new Input('base_gigachat_url', 'Базовый адрес запроса к GigaChat API'))->setDefaultValue('https://gigachat.devices.sberbank.ru'));
+$mainTab->addField((new Select('gigachat_model', 'Модель формирующая ответ на сообщение', $models))->setDefaultValue($defaultModel)->setLabel('Прочие'));
+$mainTab->addField((new Checkbox('logs_enable', 'Включить логирование')));
 $accessTab = new Tab("edit2", Loc::getMessage("MAIN_TAB_RIGHTS"), Loc::getMessage("MAIN_TAB_TITLE_RIGHTS"));
 $tabsBuilder = (new TabsBuilder())->addTab($mainTab)->addTab($accessTab);
 

@@ -10,18 +10,22 @@ final class Options
 
     public readonly string $authorizationKey;
     public readonly string $scope;
-    public readonly string $baseUrl;
-    public readonly bool $logErrors;
+    public readonly string $baseOauthUrl;
+    public readonly string $baseGigaChatUrl;
+    public readonly string $defaultModel;
+    public readonly bool $logsEnable;
 
     private function __construct()
     {
         $options = \Bitrix\Main\Config\Option::getForModule(self::MODULE_ID);
         $this->authorizationKey = $options['authorization_key'];
         $this->scope = $options['scope'];
-        $this->baseUrl = $options['base_api_url'];
-        $this->logErrors = $options['log_errors'] && $options['log_errors'] == 'Y' ? true : false;
-        if(!$this->authorizationKey || !$this->scope || !$this->baseUrl){
-            throw new \Exception("Не заполнены обязательные настройки модуля (Ключ авторизации, Scope или Базовый адрес запроса)");
+        $this->baseOauthUrl = $options['base_oauth_url'];
+        $this->baseGigaChatUrl = $options['base_gigachat_url'];
+        $this->logsEnable = $options['logs_enable'] && $options['logs_enable'] == 'Y' ? true : false;
+        $this->defaultModel = $options['gigachat_model'] ? $options['gigachat_model'] : '';
+        if(!$this->authorizationKey || !$this->scope || !$this->baseOauthUrl || !$this->baseGigaChatUrl){
+            throw new \Exception("Не заполнены обязательные настройки модуля (Ключ авторизации, Scope, Базовый адрес запроса для получения токена или Базовый адрес запроса к GigaChat API)");
         }
     }
 

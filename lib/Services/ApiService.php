@@ -2,8 +2,10 @@
 
 namespace Itb\Gigachat\Services;
 
+use Bitrix\Main\Data\Cache;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
+use Itb\Gigachat\CacheSettings;
 use Itb\Gigachat\Client;
 use Itb\Gigachat\Contracts\Logger;
 use Itb\Gigachat\Enum\Method;
@@ -16,6 +18,7 @@ abstract class ApiService
     protected readonly Client $client;
     protected readonly Options $options;
     protected readonly Logger $logger;
+    protected ?Cache $cache = null;
 
     /**
      * @param null|array $options для http клиента bitrix
@@ -25,54 +28,87 @@ abstract class ApiService
         $this->client = new Client();
         $this->options = Options::getInstance();
         $this->client->disableSslVerification();
-        if(!$logger){
+        if (!$logger) {
             $logger = new GigachatLogger;
         }
         $this->logger = $logger;
     }
 
     /**
-     * @param string $endpoint относительно базавого url из настроект модуля
+     * @param Uri $uri адрес запроса
      * @param null|array $data ключ-значение
      * @param null|array $headers ключ-значение
      */
-    protected function get(string $endpoint, ?array $data = null, ?array $headers = null): ?array
+    protected function get(Uri $uri, ?array $data = null, ?array $headers = null, ?CacheSettings $cacheSettings = null): array
     {
-        $uri = new Uri($this->options->baseUrl . $endpoint);
-        if ($data) $this->client->setGetParams($data);
+        if ($data) $uri->addParams($data);
         if ($headers) $this->client->setHeaders($headers);
-        return $this->request(Method::GET, $uri);
+        return $this->request(Method::GET, $uri, $cacheSettings);
     }
 
     /**
-     * @param string $endpoint относительно базавого url из настроект модуля
+     * @param Uri $uri адрес запроса
      * @param mixed $data
      * @param null|array $headers ключ-значение
      */
-    protected function post(string $endpoint, mixed $data = null, ?array $headers = null): ?array
+    protected function post(Uri $uri, mixed $data = null, ?array $headers = null, ?CacheSettings $cacheSettings = null): array
     {
-        $uri = new Uri($this->options->baseUrl . $endpoint);
-        if ($data) $this->client->setPostData($data);
+        $this->client->setPostData($data);
         if ($headers) $this->client->setHeaders($headers);
-        return $this->request(Method::POST, $uri);
+        return $this->request(Method::POST, $uri, $cacheSettings);
     }
 
-    protected function request(Method $method, Uri $uri): ?array
+    private function request(Method $method, Uri $uri, ?CacheSettings $cacheSettings = null): array
     {
         try {
+            if (!$cacheSettings) {
+                $cacheSettings = new CacheSettings;
+            }
+            if ($cacheSettings->time > 0) {
+                if(!$this->cache){
+                    $this->cache = Cache::createInstance();
+                }
+                if ($this->cache->initCache(1700, $cacheSettings->key, $cacheSettings->dir)) {
+                    return $this->cache->getVars();
+                } elseif ($this->cache->startDataCache()) {
+                    $result = $this->handleResult($this->client->request($method, $uri)->getResult());
+                    if (empty($result)) {
+                        $this->cache->abortDataCache();
+                        throw new \RuntimeException('Ошибка получения данных при запросе к API');
+                    }
+                    $this->cache->endDataCache($result);
+
+                    $this->logger->log($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+
+                    return $result;
+                }
+            }
+
             $result = $this->handleResult($this->client->request($method, $uri)->getResult());
+            if (empty($result)) {
+                throw new \RuntimeException('Ошибка получения данных при запросе к api');
+            }
+
+            $this->logger->log($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+
             return $result;
         } catch (ClientException $e) {
             $error = $this->client->getError();
-            if (empty($error)) {
-                $error = $this->handleResult($this->client->getResult());
+            $result = $this->handleResult($this->client->getResult());
+            if (!empty($result)) {
+                $error = [
+                    'http_error' => $error,
+                    'api_error' => $result,
+                ];
             }
             $error['exceptionMessage'] = $e->getMessage();
+            $error['status'] = $this->client->getStatus();
             $this->logger->log($error);
-        } catch (\Exception $e) {
+            throw $e;
+        } catch (\Throwable $e) {
             $this->logger->log($e->getMessage());
+            throw $e;
         }
-        return null;
     }
 
     protected function handleResult(mixed $result): array

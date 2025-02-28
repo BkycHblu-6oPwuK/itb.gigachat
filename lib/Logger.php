@@ -8,7 +8,7 @@ class Logger implements ContractsLogger
 {
     public function log(string|array $data): void
     {
-        if (Options::getInstance()->logErrors) {
+        if (Options::getInstance()->logsEnable) {
             $filename = date('Y-m-d') . '.log';
             if (is_array($data)) {
                 $log = date('H:i:s') . ' ' . print_r($data, true);

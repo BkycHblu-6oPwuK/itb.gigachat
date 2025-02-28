@@ -1,17 +1,74 @@
 <?php
+
 namespace Itb\Gigachat\Services;
 
+use Bitrix\Main\Web\Uri;
 use Itb\Core\Helpers\WebHelper;
+use Itb\Gigachat\CacheSettings;
+use Itb\Gigachat\Logger;
 
+/**
+ * @link https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token
+ */
 class AuthService extends ApiService
 {
-    public function getAccessToken() : ?string
+    private ?string $token = null;
+    private CacheSettings $cacheSettings;
+
+    public function __construct(?Logger $logger = null)
     {
-        static $result = null;
-        if($result === null){
-            $result = $this->post('/api/v2/oauth', $this->getData(), $this->getHeaders())['access_token'];
+        parent::__construct($logger);
+        $this->cacheSettings = new CacheSettings(1800, 'gigachat_access_token', '/gigachat/token');
+    }
+
+    /** 
+     * @throws \RuntimeException
+     * @throws \Exception
+     */
+    public function getAccessToken(): string
+    {
+        if (!$this->token) {
+            $this->setToken();
         }
-        return $result;
+        return $this->token;
+    }
+
+    /** 
+     * @throws \RuntimeException
+     * @throws \Exception
+     */
+    public function refreshToken()
+    {
+        $this->setToken(true);
+    }
+
+    private function setToken(bool $isRefresh = false): void
+    {
+        $result = [];
+
+        if ($isRefresh) {
+            $this->cache->clean($this->cacheSettings->key, $this->cacheSettings->dir);
+        }
+
+        $result = $this->makeRequest();
+
+        if (!isset($result['access_token'], $result['expires_at'])) {
+            throw new \RuntimeException('Ошибка получения токена');
+        }
+
+        $timestamp = (new \DateTime())->getTimestamp();
+
+        if ($result['expires_at'] < $timestamp) {
+            $this->setToken(true);
+            return;
+        }
+
+        $this->token = $result['access_token'];
+    }
+
+    private function makeRequest()
+    {
+        return $this->post(new Uri("{$this->options->baseOauthUrl}/api/v2/oauth"), $this->getData(), $this->getHeaders(), $this->cacheSettings);
     }
 
     private function getHeaders(): array
