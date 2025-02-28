@@ -1,6 +1,7 @@
 # Интеграция с api sber gigachat
 
 для работы обязателен модуль itb.core - https://git.itb-dev.ru/ITB-dev/itb.core
+минимальная версия php 8.1
 
 # Установка
 
