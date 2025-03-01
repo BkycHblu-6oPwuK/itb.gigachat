@@ -5,7 +5,7 @@ namespace Itb\Gigachat\Services;
 use Bitrix\Main\Web\Uri;
 use Itb\Core\Helpers\WebHelper;
 use Itb\Gigachat\CacheSettings;
-use Itb\Gigachat\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @link https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token
@@ -15,7 +15,7 @@ class AuthService extends ApiService
     private ?string $token = null;
     private CacheSettings $cacheSettings;
 
-    public function __construct(?Logger $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         parent::__construct($logger);
         $this->cacheSettings = new CacheSettings(1800, 'gigachat_access_token', '/gigachat/token');

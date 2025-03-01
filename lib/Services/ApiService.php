@@ -7,29 +7,29 @@ use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
 use Itb\Gigachat\CacheSettings;
 use Itb\Gigachat\Client;
-use Itb\Gigachat\Contracts\Logger;
 use Itb\Gigachat\Enum\Method;
 use Itb\Gigachat\Exceptions\ClientException;
-use Itb\Gigachat\Logger as GigachatLogger;
+use Itb\Gigachat\Logger;
 use Itb\Gigachat\Options;
+use Psr\Log\LoggerInterface;
 
 abstract class ApiService
 {
     protected readonly Client $client;
     protected readonly Options $options;
-    protected readonly Logger $logger;
+    protected readonly LoggerInterface $logger;
     protected ?Cache $cache = null;
 
     /**
      * @param null|array $options для http клиента bitrix
      */
-    public function __construct(?Logger $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         $this->client = new Client();
         $this->options = Options::getInstance();
         $this->client->disableSslVerification();
         if (!$logger) {
-            $logger = new GigachatLogger;
+            $logger = new Logger;
         }
         $this->logger = $logger;
     }
@@ -78,7 +78,7 @@ abstract class ApiService
                     }
                     $this->cache->endDataCache($result);
 
-                    $this->logger->log($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+                    $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
 
                     return $result;
                 }
@@ -89,7 +89,7 @@ abstract class ApiService
                 throw new \RuntimeException('Ошибка получения данных при запросе к api');
             }
 
-            $this->logger->log($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+            $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
 
             return $result;
         } catch (ClientException $e) {
@@ -101,12 +101,11 @@ abstract class ApiService
                     'api_error' => $result,
                 ];
             }
-            $error['exceptionMessage'] = $e->getMessage();
             $error['status'] = $this->client->getStatus();
-            $this->logger->log($error);
+            $this->logger->error($e->getMessage(), $error);
             throw $e;
         } catch (\Throwable $e) {
-            $this->logger->log($e->getMessage());
+            $this->logger->error($e->getMessage());
             throw $e;
         }
     }
@@ -116,7 +115,7 @@ abstract class ApiService
         try {
             return Json::decode($result);
         } catch (\Exception $e) {
-            $this->logger->log($e->getMessage());
+            $this->logger->error($e->getMessage());
         }
         return [];
     }

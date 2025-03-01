@@ -6,7 +6,7 @@ use Bitrix\Main\Web\Uri;
 use Itb\Gigachat\CacheSettings;
 use Itb\Gigachat\Entity\Models\Models;
 use Itb\Gigachat\Exceptions\ClientUnathorizedException;
-use Itb\Gigachat\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @link https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/get-models
@@ -15,7 +15,7 @@ class ModelsService extends AuthService
 {
     private CacheSettings $cacheSettings;
 
-    public function __construct(?Logger $logger = null)
+    public function __construct(?LoggerInterface $logger = null)
     {
         parent::__construct($logger);
         $this->cacheSettings = new CacheSettings(1800, 'gigachat_models', '/gigachat/models');

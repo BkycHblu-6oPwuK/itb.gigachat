@@ -2,20 +2,13 @@
 
 namespace Itb\Gigachat;
 
-use Itb\Gigachat\Contracts\Logger as ContractsLogger;
+use Itb\Core\Logger\FileLogger;
 
-class Logger implements ContractsLogger
+class Logger extends FileLogger
 {
-    public function log(string|array $data): void
+    public function __construct()
     {
-        if (Options::getInstance()->logsEnable) {
-            $filename = date('Y-m-d') . '.log';
-            if (is_array($data)) {
-                $log = date('H:i:s') . ' ' . print_r($data, true);
-            } else {
-                $log = date('H:i:s') . ' ' . $data;
-            }
-            file_put_contents(__DIR__ . "/../logs/{$filename}", $log . PHP_EOL, FILE_APPEND);
-        }
+        $filename = date('Y-m-d') . '.log';
+        parent::__construct(__DIR__ . "/../logs/{$filename}");
     }
 }
