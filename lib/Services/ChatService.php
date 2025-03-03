@@ -5,6 +5,7 @@ namespace Itb\Gigachat\Services;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
 use Itb\Gigachat\Entity\Chat\Chat;
+use Itb\Gigachat\Entity\Chat\ChatParam;
 use Itb\Gigachat\Exceptions\ClientUnathorizedException;
 
 /**
@@ -13,18 +14,15 @@ use Itb\Gigachat\Exceptions\ClientUnathorizedException;
  */
 class ChatService extends AuthService
 {
-    private string $userPromt = '';
-    private ?string $systemPromt = null;
-    private 
+    private ChatParam $params;
 
     /**
      * @param string $userPromt сообщение пользователя
      * @param string $systemPromt системный промпт, который задает роль модели, например, должна модель отвечать как академик или как школьник
      */
-    public function getChat(string $userPromt, ?string $systemPromt = null): Chat
+    public function getChat(ChatParam $params): Chat
     {
-        $this->userPromt = $userPromt;
-        $this->systemPromt = $systemPromt;
+        $this->params = $params;
         try {
             $result = $this->makeRequest();
         } catch (ClientUnathorizedException $e) {
@@ -45,6 +43,7 @@ class ChatService extends AuthService
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
             'Authorization' => 'Bearer ' . $this->getAccessToken(),
+            //'X-Session-ID' => '' для сохранения истории
         ];
     }
 
@@ -60,22 +59,28 @@ class ChatService extends AuthService
     private function getData(): string
     {
         $messages = [];
-        if ($this->systemPromt) {
-            $messages[] = [
-                'role' => 'system',
-                'content' => $this->systemPromt,
-            ];
-        }
-        $messages[] = [
-            'role' => 'user',
-            'content' => $this->userPromt,
-        ];
-
-        return Json::encode([
+        $params = [
             'model' => $this->getDefaultModel(),
             'messages' => $messages,
-            "stream" => false,
-            "repetition_penalty" => 1
-        ]);
+            'stream' => $this->params->stream,
+            'repetition_penalty' => $this->params->repetitionPenalty,
+        ];
+        if($this->params->temperature !== null){
+            $params['temperature'] = $this->params->temperature;
+        }
+        if($this->params->topP !== null){
+            $params['top_p'] = $this->params->topP;
+        }
+        if($this->params->maxTokens !== null){
+            $params['max_tokens'] = $this->params->maxTokens;
+        }
+        foreach($this->params->messages->getMessages() as $message){
+            $messages[] = [
+                'role' => $message->role->value,
+                'content' => $message->content,
+            ];
+        }
+        $params['messages'] = $messages;
+        return Json::encode($params);
     }
 }

@@ -3,7 +3,7 @@
 namespace Itb\Gigachat\Services;
 
 use Bitrix\Main\Web\Uri;
-use Itb\Gigachat\CacheSettings;
+use Itb\Gigachat\Entity\CacheSettings;
 use Itb\Gigachat\Entity\Models\Models;
 use Itb\Gigachat\Exceptions\ClientUnathorizedException;
 use Psr\Log\LoggerInterface;

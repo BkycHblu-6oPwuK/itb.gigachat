@@ -5,7 +5,7 @@ namespace Itb\Gigachat\Services;
 use Bitrix\Main\Data\Cache;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
-use Itb\Gigachat\CacheSettings;
+use Itb\Gigachat\Entity\CacheSettings;
 use Itb\Gigachat\Client;
 use Itb\Gigachat\Enum\Method;
 use Itb\Gigachat\Exceptions\ClientException;

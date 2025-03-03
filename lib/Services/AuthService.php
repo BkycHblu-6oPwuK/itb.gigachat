@@ -4,7 +4,7 @@ namespace Itb\Gigachat\Services;
 
 use Bitrix\Main\Web\Uri;
 use Itb\Core\Helpers\WebHelper;
-use Itb\Gigachat\CacheSettings;
+use Itb\Gigachat\Entity\CacheSettings;
 use Psr\Log\LoggerInterface;
 
 /**

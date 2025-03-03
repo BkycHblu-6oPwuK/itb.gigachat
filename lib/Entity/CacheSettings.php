@@ -1,5 +1,5 @@
 <?php
-namespace Itb\Gigachat;
+namespace Itb\Gigachat\Entity;
 
 class CacheSettings
 {
