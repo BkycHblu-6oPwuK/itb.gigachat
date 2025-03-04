@@ -3,7 +3,7 @@
 namespace Itb\Gigachat\Entity\Chat;
 
 /**
- * настройки для запроса к чату.
+ * Настройки для запроса к чату.
  * @link https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-chat
  */
 class ChatParam

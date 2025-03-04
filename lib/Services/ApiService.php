@@ -18,7 +18,7 @@ abstract class ApiService
     protected readonly Client $client;
     protected readonly Options $options;
     protected readonly LoggerInterface $logger;
-    protected ?Cache $cache = null;
+    protected readonly Cache $cache;
 
     /**
      * @param null|array $options для http клиента bitrix
@@ -27,11 +27,16 @@ abstract class ApiService
     {
         $this->client = new Client();
         $this->options = Options::getInstance();
-        $this->client->disableSslVerification();
+        
+        if(!$this->options->certEnable){
+            $this->client->disableSslVerification();
+        }
+
         if (!$logger) {
             $logger = new Logger;
         }
         $this->logger = $logger;
+        $this->cache = Cache::createInstance();
     }
 
     /**
@@ -65,9 +70,6 @@ abstract class ApiService
                 $cacheSettings = new CacheSettings;
             }
             if ($cacheSettings->time > 0) {
-                if(!$this->cache){
-                    $this->cache = Cache::createInstance();
-                }
                 if ($this->cache->initCache(1700, $cacheSettings->key, $cacheSettings->dir)) {
                     return $this->cache->getVars();
                 } elseif ($this->cache->startDataCache()) {
@@ -78,7 +80,9 @@ abstract class ApiService
                     }
                     $this->cache->endDataCache($result);
 
-                    $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+                    if($this->options->logsEnable){
+                        $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+                    }
 
                     return $result;
                 }
@@ -88,9 +92,9 @@ abstract class ApiService
             if (empty($result)) {
                 throw new \RuntimeException('Ошибка получения данных при запросе к api');
             }
-
-            $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
-
+            if($this->options->logsEnable){
+                $this->logger->info($uri->getLocator() . ', статус - ' . $this->client->getStatus());
+            }
             return $result;
         } catch (ClientException $e) {
             $error = $this->client->getError();
@@ -102,10 +106,14 @@ abstract class ApiService
                 ];
             }
             $error['status'] = $this->client->getStatus();
-            $this->logger->error($e->getMessage(), $error);
+            if($this->options->logsEnable){
+                $this->logger->error($e->getMessage(), $error);
+            }
             throw $e;
         } catch (\Throwable $e) {
-            $this->logger->error($e->getMessage());
+            if($this->options->logsEnable){
+                $this->logger->error($e->getMessage());
+            }
             throw $e;
         }
     }
@@ -115,7 +123,9 @@ abstract class ApiService
         try {
             return Json::decode($result);
         } catch (\Exception $e) {
-            $this->logger->error($e->getMessage());
+            if($this->options->logsEnable){
+                $this->logger->error($e->getMessage());
+            }
         }
         return [];
     }

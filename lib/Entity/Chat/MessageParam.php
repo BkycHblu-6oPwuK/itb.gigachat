@@ -5,7 +5,7 @@ namespace Itb\Gigachat\Entity\Chat;
 use Itb\Gigachat\Enum\RoleChat;
 
 /**
- * Объект, содержащий параметры сообщения.
+ * Хранит сообщение к модели
  */
 class MessageParam
 {

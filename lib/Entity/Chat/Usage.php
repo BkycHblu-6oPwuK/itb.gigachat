@@ -21,9 +21,6 @@ class Usage
      */
     public readonly int $totalTokens;
 
-    /**
-     * 
-     */
     public readonly int $precachedPromtTokens;
 
     public function __construct(array $usage)

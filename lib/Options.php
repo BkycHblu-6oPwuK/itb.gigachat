@@ -14,6 +14,7 @@ final class Options
     public readonly string $baseGigaChatUrl;
     public readonly string $defaultModel;
     public readonly bool $logsEnable;
+    public readonly bool $certEnable;
 
     private function __construct()
     {
@@ -24,6 +25,7 @@ final class Options
         $this->baseGigaChatUrl = $options['base_gigachat_url'];
         $this->logsEnable = $options['logs_enable'] && $options['logs_enable'] == 'Y' ? true : false;
         $this->defaultModel = $options['gigachat_model'] ? $options['gigachat_model'] : '';
+        $this->certEnable = $options['cert_enable'] && $options['cert_enable'] == 'Y' ? true : false;
         if(!$this->authorizationKey || !$this->scope || !$this->baseOauthUrl || !$this->baseGigaChatUrl){
             throw new \Exception("Не заполнены обязательные настройки модуля (Ключ авторизации, Scope, Базовый адрес запроса для получения токена или Базовый адрес запроса к GigaChat API)");
         }
