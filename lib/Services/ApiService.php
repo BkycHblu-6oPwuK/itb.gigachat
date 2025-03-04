@@ -70,7 +70,7 @@ abstract class ApiService
                 $cacheSettings = new CacheSettings;
             }
             if ($cacheSettings->time > 0) {
-                if ($this->cache->initCache(1700, $cacheSettings->key, $cacheSettings->dir)) {
+                if ($this->cache->initCache($cacheSettings->time, $cacheSettings->key, $cacheSettings->dir)) {
                     return $this->cache->getVars();
                 } elseif ($this->cache->startDataCache()) {
                     $result = $this->handleResult($this->client->request($method, $uri)->getResult());
