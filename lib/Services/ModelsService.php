@@ -3,7 +3,7 @@
 namespace Itb\Gigachat\Services;
 
 use Bitrix\Main\Web\Uri;
-use Itb\Gigachat\Entity\CacheSettings;
+use Itb\Core\Dto\CacheSettingsDto;
 use Itb\Gigachat\Entity\Models\Models;
 use Itb\Gigachat\Exceptions\ClientUnathorizedException;
 use Psr\Log\LoggerInterface;
@@ -13,12 +13,12 @@ use Psr\Log\LoggerInterface;
  */
 class ModelsService extends AuthService
 {
-    private CacheSettings $cacheSettings;
+    private CacheSettingsDto $cacheSettings;
 
     public function __construct(?LoggerInterface $logger = null)
     {
         parent::__construct($logger);
-        $this->cacheSettings = new CacheSettings(1800, 'gigachat_models', '/gigachat/models');
+        $this->cacheSettings = new CacheSettingsDto(1800, 'gigachat_models', '/gigachat/models');
     }
 
     /**

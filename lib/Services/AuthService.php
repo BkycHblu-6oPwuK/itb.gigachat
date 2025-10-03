@@ -3,8 +3,8 @@
 namespace Itb\Gigachat\Services;
 
 use Bitrix\Main\Web\Uri;
+use Itb\Core\Dto\CacheSettingsDto;
 use Itb\Core\Helpers\WebHelper;
-use Itb\Gigachat\Entity\CacheSettings;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -13,12 +13,12 @@ use Psr\Log\LoggerInterface;
 class AuthService extends ApiService
 {
     private ?string $token = null;
-    private CacheSettings $cacheSettings;
+    private CacheSettingsDto $cacheSettings;
 
     public function __construct(?LoggerInterface $logger = null)
     {
         parent::__construct($logger);
-        $this->cacheSettings = new CacheSettings(1800, 'gigachat_access_token', '/gigachat/token');
+        $this->cacheSettings = new CacheSettingsDto(1800, 'gigachat_access_token', '/gigachat/token');
     }
 
     /** 

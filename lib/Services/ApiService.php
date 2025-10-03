@@ -5,7 +5,7 @@ namespace Itb\Gigachat\Services;
 use Bitrix\Main\Data\Cache;
 use Bitrix\Main\Web\Json;
 use Bitrix\Main\Web\Uri;
-use Itb\Gigachat\Entity\CacheSettings;
+use Itb\Core\Dto\CacheSettingsDto;
 use Itb\Gigachat\Client;
 use Itb\Gigachat\Enum\Method;
 use Itb\Gigachat\Exceptions\ClientException;
@@ -44,7 +44,7 @@ abstract class ApiService
      * @param null|array $data ключ-значение
      * @param null|array $headers ключ-значение
      */
-    protected function get(Uri $uri, ?array $data = null, ?array $headers = null, ?CacheSettings $cacheSettings = null): array
+    protected function get(Uri $uri, ?array $data = null, ?array $headers = null, ?CacheSettingsDto $cacheSettings = null): array
     {
         if ($data) $uri->addParams($data);
         if ($headers) $this->client->setHeaders($headers);
@@ -56,18 +56,18 @@ abstract class ApiService
      * @param mixed $data
      * @param null|array $headers ключ-значение
      */
-    protected function post(Uri $uri, mixed $data = null, ?array $headers = null, ?CacheSettings $cacheSettings = null): array
+    protected function post(Uri $uri, mixed $data = null, ?array $headers = null, ?CacheSettingsDto $cacheSettings = null): array
     {
         $this->client->setPostData($data);
         if ($headers) $this->client->setHeaders($headers);
         return $this->request(Method::POST, $uri, $cacheSettings);
     }
 
-    private function request(Method $method, Uri $uri, ?CacheSettings $cacheSettings = null): array
+    private function request(Method $method, Uri $uri, ?CacheSettingsDto $cacheSettings = null): array
     {
         try {
             if (!$cacheSettings) {
-                $cacheSettings = new CacheSettings;
+                $cacheSettings = new CacheSettingsDto;
             }
             if ($cacheSettings->time > 0) {
                 if ($this->cache->initCache($cacheSettings->time, $cacheSettings->key, $cacheSettings->dir)) {
