@@ -16,13 +16,13 @@ class beeralex_gigachat extends CModule
             $this->MODULE_ID           = 'beeralex.gigachat';
             $this->MODULE_VERSION      = $arModuleVersion['VERSION'];
             $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
-            $this->MODULE_NAME         = Loc::getMessage('ITB_GIGACHAT_NAME');
-            $this->MODULE_DESCRIPTION  = Loc::getMessage('ITB_GIGACHAT_DESCRIPTION');
+            $this->MODULE_NAME         = Loc::getMessage('BEERALEX_GIGACHAT_NAME');
+            $this->MODULE_DESCRIPTION  = Loc::getMessage('BEERALEX_GIGACHAT_DESCRIPTION');
             $this->PARTNER_NAME = 'Beeralex';
             $this->PARTNER_URI = '#';
         } else {
             CAdminMessage::showMessage(
-                Loc::getMessage('ITB_GIGACHAT_FILE_NOT_FOUND') . ' version.php'
+                Loc::getMessage('BEERALEX_GIGACHAT_FILE_NOT_FOUND') . ' version.php'
             );
         }
     }
@@ -55,7 +55,7 @@ class beeralex_gigachat extends CModule
         ModuleManager::unRegisterModule($this->MODULE_ID);
 
         $APPLICATION->includeAdminFile(
-            Loc::getMessage('ITB_GIGACHAT_UNINSTALL_TITLE') . ' «' . Loc::getMessage('ITB_GIGACHAT_NAME') . '»',
+            Loc::getMessage('BEERALEX_GIGACHAT_UNINSTALL_TITLE') . ' «' . Loc::getMessage('BEERALEX_GIGACHAT_NAME') . '»',
             __DIR__ . '/unstep.php'
         );
     }
